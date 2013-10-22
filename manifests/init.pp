@@ -35,7 +35,17 @@
 #
 # Copyright 2013 Your name here, unless otherwise noted.
 #
-class chocolatey {
+class chocolatey
+{
+  if ($::operatingsystem != 'Windows')
+  {
+    err('This Module works on Windows only!')
+    fail("Unsupported OS: ${::operatingsystem}")
+  }
 
-
+  exec {'chocolatey-install':
+    command  => "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))",
+    creates  => 'C:/chocolatey',
+    provider => powershell,
+  }
 }
