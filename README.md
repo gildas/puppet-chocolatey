@@ -8,6 +8,12 @@ Description
 
 Yet another [Puppet](http://docs.puppetlabs.com) module for [Chocolatey](http://chocolatey.org).
 
+Disclaimer
+----------
+
+This project is under construction and is not ready for general usage.
+Use it at your own risk.
+
 Installation
 ------------
 
