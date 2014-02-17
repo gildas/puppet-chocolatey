@@ -43,9 +43,21 @@ class chocolatey
     fail("Unsupported OS: ${::operatingsystem}")
   }
 
-  exec {'chocolatey-install':
+  exec {'install-chocolatey':
     command  => "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))",
     creates  => 'C:/chocolatey',
     provider => powershell,
+  }
+
+  # Installs packages from hiera
+  $packages = hiera_array('packages', [])
+  if (!empty($packages))
+  {
+    notice(" Checking packages: ${packages}")
+    package {$packages:
+      ensure   => installed,
+      provider => chocolatey,
+      require  => Exec['install-chocolatey'],
+    }
   }
 }
