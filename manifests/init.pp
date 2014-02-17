@@ -52,20 +52,36 @@ class chocolatey
   exec {'rmvar-chocolateyinstall':
     command => 'reg delete "HKCU\Environment" /v ChocolateyInstall /f',
     onlyif  => 'reg query "HKCU\Environment" /v ChocolateyInstall',
+    path    => [ 'C:/windows/sysnative', 'C:/windows/system32' ],
     require => Exec['install-chocolatey'],
   }
 
   exec {'addsysvar-chocolateyinstall':
     command => 'setx /M ChocolateyInstall C:\chocolatey',
     unless  => 'reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v ChocolateyInstall',
+    path    => [ 'C:/windows/sysnative', 'C:/windows/system32' ],
     require => Exec['install-chocolatey'],
   }
 
-  exec {'addsyspath-chocolatey':
-    command => 'setx /M path C:\chocolatey\bin',
-    unless  => 'reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path | findstr Chocolatey',
-    require => Exec['install-chocolatey'],
-  }
+  # Before:
+  # setx PATH "%SYSTEMROOT%\system32;%SYSTEMROOT%;%SYSTEMROOT%\system32\Wbem;%SYSTEMROOT%\system32\WindowsPowerShell\v1.0;%ProgramFiles(x86)%\Puppet Labs\Puppet\bin" /M
+  # After:
+  # setx PATH "%SYSTEMROOT%\system32;%SYSTEMROOT%;%SYSTEMROOT%\system32\Wbem;%SYSTEMROOT%\Wsystem32\indowsPowerShell\v1.0;%ProgramFiles(x86)%\Puppet Labs\Puppet\bin;C:\Chocolatey\bin" /M
+  # TODO: We cannot use setx PATH "%PATH%...." since %PATH$ in puppet's environment is minimal.
+  # So using it will destroy the standard PATH.
+  # I should get stuff from https://github.com/badgerious/puppet-windows-env
+  #exec {'chocolatey-environment-path-config':
+  #  command => "setx PATH \"%PATH%;C:\\Chocolatey\\bin\" /M",
+  #  unless  => "reg.exe query \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment\" /v PATH | findstr /L /C:\"Chocolatey\"",
+  #  path    => [ 'C:/windows/sysnative', 'C:/windows/system32' ],
+  #  require => Exec['chocolatey-install'],
+  #}
+  #exec {'addsyspath-chocolatey':
+  #  command => 'setx /M path C:\chocolatey\bin',
+  #  unless  => 'reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path | findstr Chocolatey',
+  #  path    => [ 'C:/windows/sysnative', 'C:/windows/system32' ],
+  #  require => Exec['install-chocolatey'],
+  #}
 
   # Installs packages from hiera
   $packages = hiera_array('packages', [])
