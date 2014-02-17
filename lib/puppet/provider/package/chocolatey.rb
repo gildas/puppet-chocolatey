@@ -51,7 +51,7 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
   def query
     Puppet.debug "Querying #{@resource[:name]}"
     self.class.instances.each do |provider_chocolatey|
-      return provider_chocolatey.properties if @resource[:name][/\A\S*/] == provider_chocolatey.name
+      return provider_chocolatey.properties if !package_name.casecmp(provider_chocolatey.name)
     end
     return nil
   end
