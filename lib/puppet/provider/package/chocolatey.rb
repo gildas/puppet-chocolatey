@@ -10,7 +10,7 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
   has_feature :upgradeable
   has_feature :versionable
 
-  command :chocolatey => "#{ENV['ChocolateyInstall'] || 'C:\Chocolatey'}\\chocolateyInstall\\chocolatey.cmd"
+  commands :chocolatey => "#{ENV['ChocolateyInstall'] || 'C:\Chocolatey'}\\chocolateyInstall\\chocolatey.cmd"
 
  def print()
    notice("The value is: '${name}'")
