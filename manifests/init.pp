@@ -49,6 +49,24 @@ class chocolatey
     provider => powershell,
   }
 
+  exec {'rmvar-chocolateyinstall':
+    command => 'reg delete "HKCU\Environment" /v ChocolateyInstall /f',
+    onlyif  => 'reg query "HKCU\Environment" /v ChocolateyInstall',
+    require => Exec['install-chocolatey'],
+  }
+
+  exec {'addsysvar-chocolateyinstall':
+    command => 'setx /M ChocolateyInstall C:\chocolatey',
+    unless  => 'reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v ChocolateyInstall',
+    require => Exec['install-chocolatey'],
+  }
+
+  exec {'addsyspath-chocolatey':
+    command => 'setx /M path C:\chocolatey\bin',
+    unless  => 'reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path | findstr Chocolatey',
+    require => Exec['install-chocolatey'],
+  }
+
   # Installs packages from hiera
   $packages = hiera_array('packages', [])
   if (!empty($packages))
