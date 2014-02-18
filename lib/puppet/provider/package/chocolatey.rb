@@ -31,7 +31,7 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
     begin
       chocolatey :install, package_name, *options
     rescue Puppet::ExecutionFailure
-      Puppet.error "Package #{@resource[:name]} Install failed: #{$!}"
+      Puppet.err "Package #{@resource[:name]} Install failed: #{$!}"
       nil
     end
   end
@@ -41,7 +41,7 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
     begin
       chocolatey :uninstall, package_name
     rescue Puppet::ExecutionFailure
-      Puppet.error "Package #{@resource[:name]} Uninstall failed: #{$!}"
+      Puppet.err "Package #{@resource[:name]} Uninstall failed: #{$!}"
       nil
     end
   end
@@ -54,7 +54,7 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
     begin
       chocolatey :update, package_name, *options
     rescue Puppet::ExecutionFailure
-      Puppet.error "Package #{@resource[:name]} Update failed: #{$!}"
+      Puppet.err "Package #{@resource[:name]} Update failed: #{$!}"
       nil
     end
   end
@@ -74,7 +74,7 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
       Puppet.debug "  #{@resource[:name]} not installed"
       nil
     rescue Puppet::ExecutionFailure
-      Puppet.error "Package #{@resource[:name]} Query failed: #{$!}"
+      Puppet.err "Package #{@resource[:name]} Query failed: #{$!}"
       nil
     end
   end
@@ -93,7 +93,7 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
       end
       nil
     rescue Puppet::ExecutionFailure
-      Puppet.error "Package #{@resource[:name]} Query Latest failed: #{$!}"
+      Puppet.err "Package #{@resource[:name]} Query Latest failed: #{$!}"
       nil
     end
   end
@@ -113,7 +113,7 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
       end
       packages
     rescue Puppet::ExecutionFailure
-      Puppet.error "Instances failed: #{$!}"
+      Puppet.err "Instances failed: #{$!}"
       nil
     end
   end
