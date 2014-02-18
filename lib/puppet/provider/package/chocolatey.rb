@@ -68,7 +68,7 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
           next if line.empty? or line =~ /Reading environment variables/
           next if line !~ /^(#{package_name})\s+(.*)/i
           Puppet.debug "  #{$1} is at #{$2}"
-          return { name: $1, ensure: $2, provider: 'chocolatey' }
+          return { :name => $1, :ensure => $2, :provider => 'chocolatey' }
         end
       end
       Puppet.debug "  #{@resource[:name]} not installed"
@@ -108,7 +108,7 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
           next if line.empty? or line =~ /Reading environment variables/
           info = line.strip.split(' ')
           Puppet.debug "  Package #{info[0]} is at version: #{info[1]}."
-          packages << new({ name: info[0], ensure: info[1], provider: 'chocolatey' })
+          packages << new({ :name => info[0], :ensure => info[1], :provider => 'chocolatey' })
         end
       end
       packages
