@@ -64,8 +64,10 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
     begin
       execpipe([command(:chocolatey), :list, "-localonly", package_name]) do |process|
         process.each_line do |line|
+          Puppet.debug "  Query|line: [#{line}]"
           line.chomp!
           next if line.empty? or line =~ /Reading environment variables/
+          Puppet.debug "  Query|line is not empty nor the 'Reading...' line"
           next if line !~ /^(package_name)\s* (.*)/i
           Puppet.debug "  #{$1} is at #{$2}"
           return { name: $1, ensure: $2, provider: 'chocolatey' }
