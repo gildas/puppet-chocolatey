@@ -12,10 +12,6 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
 
   commands :chocolatey => "#{ENV['ChocolateyInstall'] || 'C:\Chocolatey'}\\chocolateyInstall\\chocolatey.cmd"
 
- def print()
-   notice("The value is: '${name}'")
- end
-
   def package_name
     @resource[:name][/\A\S*/]
   end
@@ -32,12 +28,22 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
     end
     options << '-source' << @resource[:source] if @resource[:source]
     options << install_options                 if install_options.any?
-    chocolatey :install, package_name, *options
+    begin
+      chocolatey :install, package_name, *options
+    rescue Puppet::ExecutionFailure
+      Puppet.error "Package #{@resource[:name]} Install failed: #{$!}"
+      nil
+    end
   end
 
   def uninstall
     Puppet.notice "Uninstalling #{@resource[:name]}"
-    chocolatey :uninstall, package_name
+    begin
+      chocolatey :uninstall, package_name
+    rescue Puppet::ExecutionFailure
+      Puppet.error "Package #{@resource[:name]} Uninstall failed: #{$!}"
+      nil
+    end
   end
 
   def update
@@ -45,61 +51,70 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
     options = []
     options << '-source' << @resource[:source] if @resource[:source]
     options << install_options                 if install_options.any?
-    chocolatey :update, package_name, *options
+    begin
+      chocolatey :update, package_name, *options
+    rescue Puppet::ExecutionFailure
+      Puppet.error "Package #{@resource[:name]} Update failed: #{$!}"
+      nil
+    end
   end
 
   def query
     Puppet.debug "Querying #{@resource[:name]}"
-    self.class.instances.each do |provider_chocolatey|
-      return provider_chocolatey.properties if !package_name.casecmp(provider_chocolatey.name)
-    end
-    return nil
-  end
-
-  def self.listcmd
-    [command(:chocolatey), "list", "-lo"]
-  end
-
-  def self.instances
-    packages = []
-
     begin
-      execpipe(listcmd()) do |process|
+      execpipe([command(:chocolatey), :list, "-localonly", package_name]) do |process|
         process.each_line do |line|
           line.chomp!
-          if line.empty? or line.match(/Reading environment variables.*/); next; end
-          values = line.split(' ')
-          packages << new({ :name => values[0], :ensure => values[1], :provider => self.name })
+          next if line.empty? or line =~ /Reading environment variables/
+          next if line !~ /^(package_name)\s* (.*)/i
+          Puppet.debug "  #{$1} is at #{$2}"
+          return { name: $1, ensure: $2, provider: 'chocolatey' }
         end
       end
+      Puppet.debug "  #{@resource[:name]} not installed"
+      nil
     rescue Puppet::ExecutionFailure
-      return nil
+      Puppet.error "Package #{@resource[:name]} Query failed: #{$!}"
+      nil
     end
-    packages
-  end
-
-  def latestcmd
-    [command(:chocolatey), ' version ' + package_name + ' | findstr /R "latest" | findstr /V "latestCompare" ']
   end
 
   def latest
-    packages = []
-
+    Puppet.debug "Querying latest for #{@resource[:name]}"
     begin
-      output = execpipe(latestcmd()) do |process|
-
+      execpipe([command(:chocolatey), :version, package_name]) do |process|
         process.each_line do |line|
           line.chomp!
-          if line.empty?; next; end
-          # Example: ( latest        : 2013.08.19.155043 )
-          values = line.split(':').collect(&:strip).delete_if(&:empty?)
-          return values[1]
+          next if line.empty? or line =~ /Reading environment variables/
+          next if line !~ /^latest\s+: (.*)/i
+          Puppet.debug "  Latest version for #{@resource[:name]}: #{$1}"
+          return $1
         end
       end
+      nil
     rescue Puppet::ExecutionFailure
-      return nil
+      Puppet.error "Package #{@resource[:name]} Query Latest failed: #{$!}"
+      nil
     end
-    packages
+  end
+
+  def self.instances
+    Puppet.debug "Listing currently installed packages"
+    packages = []
+    begin
+      execpipe([command(:chocolatey), :list, '-localonly']) do |process|
+        process.each_line do |line|
+          line.chomp!
+          next if line.empty? or line =~ /Reading environment variables/
+          info = line.strip.split(' ')
+          packages << new({ name: info[0], ensure: info[1], provider: 'chocolatey' })
+        end
+      end
+      packages
+    rescue Puppet::ExecutionFailure
+      Puppet.error "Instances failed: #{$!}"
+      nil
+    end
   end
 
 end
