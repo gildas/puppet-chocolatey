@@ -107,6 +107,7 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
           line.chomp!
           next if line.empty? or line =~ /Reading environment variables/
           info = line.strip.split(' ')
+          Puppet.debug "  Package #{info[0]} is at version: #{info[1]}."
           packages << new({ name: info[0], ensure: info[1], provider: 'chocolatey' })
         end
       end
