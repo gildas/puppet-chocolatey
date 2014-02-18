@@ -86,7 +86,7 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
         process.each_line do |line|
           line.chomp!
           next if line.empty? or line =~ /Reading environment variables/
-          next if line !~ /^latest\s+: (.*)/i
+          next if line !~ /^latest\s+:\s(.*)/i
           Puppet.debug "  Latest version for #{@resource[:name]}: #{$1}"
           return $1
         end
