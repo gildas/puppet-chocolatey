@@ -84,7 +84,7 @@ class chocolatey
   #}
 
   # Installs packages from hiera
-  $packages = hiera_array('packages', {})
+  $packages = hiera_hash('packages', {})
   if (!empty($packages))
   {
     notice(" Checking packages: ${packages}")
