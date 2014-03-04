@@ -89,7 +89,7 @@ class chocolatey
   {
     notice(" Checking packages: ${packages}")
     $package_defaults = {
-      ensure   => latest,
+      ensure   => installed,
       provider => chocolatey,
       require  => Exec['install-chocolatey'],
     }
