@@ -43,6 +43,8 @@ class chocolatey
     fail("Unsupported OS: ${::operatingsystem}")
   }
 
+  $chocolatey_root = 'C:\ProgramData\Chocolatey'
+
   exec {'install-chocolatey':
     command  => "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))",
     creates  => 'C:/ProgramData/chocolatey/bin/chocolatey.bat',
@@ -52,13 +54,6 @@ class chocolatey
   exec {'addvar-chocolateyinstall':
     command => 'setx ChocolateyInstall C:\ProgramData\chocolatey',
     unless  => 'reg query "HKCU\Environment" /v ChocolateyInstall',
-    path    => [ 'C:/windows/sysnative', 'C:/windows/system32' ],
-    require => Exec['install-chocolatey'],
-  }
-
-  exec {'addsysvar-chocolateyinstall':
-    command => 'setx /M ChocolateyInstall C:\chocolatey',
-    unless  => 'reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v ChocolateyInstall',
     path    => [ 'C:/windows/sysnative', 'C:/windows/system32' ],
     require => Exec['install-chocolatey'],
   }
