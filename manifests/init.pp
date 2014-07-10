@@ -47,7 +47,7 @@ class chocolatey
 
   exec {'install-chocolatey':
     command  => "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))",
-    creates  => 'C:/ProgramData/chocolatey/bin/chocolatey.bat',
+    creates  => 'C:/ProgramData/chocolatey/bin/chocolatey.exe',
     provider => powershell,
   }
 
