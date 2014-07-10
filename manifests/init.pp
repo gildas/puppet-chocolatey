@@ -45,12 +45,12 @@ class chocolatey
 
   exec {'install-chocolatey':
     command  => "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))",
-    creates  => 'C:/chocolatey/bin/chocolatey.bat',
+    creates  => 'C:/ProgramData/chocolatey/bin/chocolatey.bat',
     provider => powershell,
   }
 
   exec {'addvar-chocolateyinstall':
-    command => 'setx ChocolateyInstall C:\chocolatey',
+    command => 'setx ChocolateyInstall C:\ProgramData\chocolatey',
     unless  => 'reg query "HKCU\Environment" /v ChocolateyInstall',
     path    => [ 'C:/windows/sysnative', 'C:/windows/system32' ],
     require => Exec['install-chocolatey'],
