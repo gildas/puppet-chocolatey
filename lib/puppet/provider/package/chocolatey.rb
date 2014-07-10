@@ -10,7 +10,10 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
   has_feature :upgradeable
   has_feature :versionable
 
-  commands :chocolatey => "#{ENV['ChocolateyInstall'] || 'C:\ProgramData\Chocolatey'}\\chocolateyInstall\\chocolatey.cmd"
+  # Since Chocolatey runs as the puppet account service (SYSTEM usually) there is no ENV
+  ENV['ChocolateyInstall'] = 'C:\ProgramData\Chocolatey'
+
+  commands :chocolatey => "C:\\ProgramData\\Chocolatey\\chocolateyInstall\\chocolatey.cmd"
 
   def package_name
     @resource[:name][/\A\S*/]
