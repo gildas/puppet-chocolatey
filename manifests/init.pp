@@ -46,56 +46,74 @@ class chocolatey
   # We do not want to copy Unix modes to Windows, it tends to render files unaccessible
   File { source_permissions => ignore }
 
-  file {"C:/Windows/TEMP/chocolatey":
-    ensure   => directory,
-    provider => windows,
-  }
+  $chocolatey_root = 'C:\ProgramData\Chocolatey'
 
-  $dotnet_source  = 'http://download.microsoft.com/download/b/a/4/ba4a7e71-2906-4b2d-a0e1-80cf16844f5f/dotnetfx45_full_x86_x64.exe'
-  $dotnet_install = 'dotNetFx45_Full_x86_x64.exe'
+  case $::operatingsystemreleaseneocomplcache
+  {
+    # On Windows 7 and Windows Server 2008R2, we need to install .Net 4.5 and Powershell 3.0 before Chocolatey
+    '6.1.7601', '2008 R2' : # Windows 7, Windows Server 2008R2
+    {
+      file {"C:/Windows/TEMP/chocolatey":
+        ensure   => directory,
+        provider => windows,
+      }
 
-  exec {'chocolatey-download-dotnet-4.5':
-    command  => "((new-object net.webclient).DownloadFile('${dotnet_source}','C:/Windows/TEMP/chocolatey/${dotnet_install}'))",
-    creates  => "C:/Windows/TEMP/chocolatey/${dotnet_install}",
-    provider => powershell,
-    require  => File["C:/Windows/TEMP/chocolatey"],
-  }
+      $dotnet_source  = 'http://download.microsoft.com/download/b/a/4/ba4a7e71-2906-4b2d-a0e1-80cf16844f5f/dotnetfx45_full_x86_x64.exe'
+      $dotnet_install = 'dotNetFx45_Full_x86_x64.exe'
 
-  exec {'chocolatey-install-dotnet-4.5':
-    command  => "C:/Windows/TEMP/chocolatey/${dotnet_install} /q /norestart /log C:\\Windows\\Logs\\install-dotnet-4.5.log",
-    onlyif   => "if (Get-Item C:\Windows\Microsoft.NET\Framework\v4.0.30319 -ErrorAction Ignore) { exit 1 }",
-    provider => powershell,
-    require  => Exec['chocolatey-download-dotnet-4.5'],
-    notify   => Reboot['after'],
-  }
+      exec {'chocolatey-download-dotnet-4.5':
+        command  => "((new-object net.webclient).DownloadFile('${dotnet_source}','C:/Windows/TEMP/chocolatey/${dotnet_install}'))",
+        creates  => "C:/Windows/TEMP/chocolatey/${dotnet_install}",
+        provider => powershell,
+        require  => File["C:/Windows/TEMP/chocolatey"],
+      }
+
+      exec {'chocolatey-install-dotnet-4.5':
+        command  => "C:/Windows/TEMP/chocolatey/${dotnet_install} /q /norestart /log C:\\Windows\\Logs\\install-dotnet-4.5.log",
+        onlyif   => "if (Get-Item C:\Windows\Microsoft.NET\Framework\v4.0.30319 -ErrorAction Ignore) { exit 1 }",
+        provider => powershell,
+        require  => Exec['chocolatey-download-dotnet-4.5'],
+        notify   => Reboot['after'],
+      }
 
 # Powershell 3.0 => http://download.microsoft.com/download/E/7/6/E76850B8-DA6E-4FF5-8CCE-A24FC513FD16/Windows6.1-KB2506143-x64.msu
 # Powershell 4.0 => http://download.microsoft.com/download/3/D/6/3D61D262-8549-4769-A660-230B67E15B25/Windows6.1-KB2819745-x64-MultiPkg.msu
-  $posh_source  = 'http://download.microsoft.com/download/E/7/6/E76850B8-DA6E-4FF5-8CCE-A24FC513FD16/Windows6.1-KB2506143-x64.msu'
-  $posh_install = 'Windows6.1-KB2506143-x64.msu'
+      $posh_source  = 'http://download.microsoft.com/download/E/7/6/E76850B8-DA6E-4FF5-8CCE-A24FC513FD16/Windows6.1-KB2506143-x64.msu'
+      $posh_install = 'Windows6.1-KB2506143-x64.msu'
 
-  exec {'chocolatey-download-powershell-3.0':
-    command  => "((new-object net.webclient).DownloadFile('${posh_source}','C:/Windows/TEMP/chocolatey/${posh_install}'))",
-    creates  => "C:/Windows/TEMP/chocolatey/${posh_install}",
-    provider => powershell,
-    require  => File["C:/Windows/TEMP/chocolatey"],
-  }
+      exec {'chocolatey-download-powershell-3.0':
+        command  => "((new-object net.webclient).DownloadFile('${posh_source}','C:/Windows/TEMP/chocolatey/${posh_install}'))",
+        creates  => "C:/Windows/TEMP/chocolatey/${posh_install}",
+        provider => powershell,
+        require  => File["C:/Windows/TEMP/chocolatey"],
+      }
 
-  #exec {'core-windows-install-KB2588507':
-  #  command  => "&C:\\Windows\\System32\\wusa.exe /install ${core::cache_dir}/windows6.1-kb2588507-x64.msu /quiet /norestart /log C:\\Windows\\Logs\\wusa-kb2588507.log",
-  #  onlyif   => "if (Get-Hotfix -Id 'KB2588507' -ErrorAction Ignore) { exit 1 }",
-  #  provider => powershell,
-  #  require  => File['core-windows-download-KB2588507'],
-  #  notify   => Reboot['after'],
-  #}
+      exec {'chocolatey-install-posh-3':
+        command  => "&C:\\Windows\\System32\\wusa.exe /install C:/Windows/TEMP/chocolatey/${posh_install} /quiet /norestart /log C:\\Windows\\Logs\\wusa-posh-3.0.log",
+        onlyif   => "if ($PSVersionTable.PSVersion.Major -gt 2) { exit 1 }",
+        provider => powershell,
+        require  => [
+                      Exec['chocolatey-download-powershell-3.0'],
+                      Exec['chocolatey-install-dotnet-4.5'],
+                    ],
+        notify   => Reboot['after'],
+      }
 
-  $chocolatey_root = 'C:\ProgramData\Chocolatey'
-
-  exec {'chocolatey-install':
-    command  => "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))",
-    creates  => 'C:/ProgramData/chocolatey/bin/chocolatey.exe',
-    provider => powershell,
-    require  => Exec['chocolatey-install-dotnet-4.5'],
+      exec {'chocolatey-install':
+        command  => "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))",
+        creates  => 'C:/ProgramData/chocolatey/bin/chocolatey.exe',
+        provider => powershell,
+        require  => Exec['chocolatey-install-posh-3'],
+      }
+    }
+    default:      # Windows 8, 8.1, 2012, 2012R2
+    {
+      exec {'chocolatey-install':
+        command  => "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))",
+        creates  => 'C:/ProgramData/chocolatey/bin/chocolatey.exe',
+        provider => powershell,
+      }
+    }
   }
 
   exec {'addvar-chocolateyinstall':
