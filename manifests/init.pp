@@ -69,11 +69,25 @@ class chocolatey
     notify   => Reboot['after'],
   }
 
-# Powershell 3.0
-# http://download.microsoft.com/download/E/7/6/E76850B8-DA6E-4FF5-8CCE-A24FC513FD16/Windows6.1-KB2506143-x64.msu
+# Powershell 3.0 => http://download.microsoft.com/download/E/7/6/E76850B8-DA6E-4FF5-8CCE-A24FC513FD16/Windows6.1-KB2506143-x64.msu
+# Powershell 4.0 => http://download.microsoft.com/download/3/D/6/3D61D262-8549-4769-A660-230B67E15B25/Windows6.1-KB2819745-x64-MultiPkg.msu
+  $posh_source  = 'http://download.microsoft.com/download/E/7/6/E76850B8-DA6E-4FF5-8CCE-A24FC513FD16/Windows6.1-KB2506143-x64.msu'
+  $posh_install = 'Windows6.1-KB2506143-x64.msu'
 
-# Powershell 4.0
-# http://download.microsoft.com/download/3/D/6/3D61D262-8549-4769-A660-230B67E15B25/Windows6.1-KB2819745-x64-MultiPkg.msu
+  exec {'chocolatey-download-powershell-3.0':
+    command  => "((new-object net.webclient).DownloadFile('${posh_source}','C:/Windows/TEMP/chocolatey/${posh_install}'))",
+    creates  => "C:/Windows/TEMP/chocolatey/${posh_install}",
+    provider => powershell,
+    require  => File["C:/Windows/TEMP/chocolatey"],
+  }
+
+  #exec {'core-windows-install-KB2588507':
+  #  command  => "&C:\\Windows\\System32\\wusa.exe /install ${core::cache_dir}/windows6.1-kb2588507-x64.msu /quiet /norestart /log C:\\Windows\\Logs\\wusa-kb2588507.log",
+  #  onlyif   => "if (Get-Hotfix -Id 'KB2588507' -ErrorAction Ignore) { exit 1 }",
+  #  provider => powershell,
+  #  require  => File['core-windows-download-KB2588507'],
+  #  notify   => Reboot['after'],
+  #}
 
   $chocolatey_root = 'C:\ProgramData\Chocolatey'
 
