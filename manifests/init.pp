@@ -43,12 +43,45 @@ class chocolatey
     fail("Unsupported OS: ${::operatingsystem}")
   }
 
+  # We do not want to copy Unix modes to Windows, it tends to render files unaccessible
+  File { source_permissions => ignore }
+
+  file {"C:/Windows/TEMP/chocolatey":
+    ensure   => directory,
+    provider => windows,
+  }
+
+  $dotnet_source  = 'http://download.microsoft.com/download/b/a/4/ba4a7e71-2906-4b2d-a0e1-80cf16844f5f/dotnetfx45_full_x86_x64.exe'
+  $dotnet_install = 'dotNetFx45_Full_x86_x64.exe'
+
+  exec {'chocolatey-download-dotnet-4.5':
+    command  => "((new-object net.webclient).DownloadFile('${dotnet_source}','C:/Windows/TEMP/chocolatey/${dotnet_install}'))",
+    creates  => "C:/Windows/TEMP/chocolatey/${dotnet_install}",
+    provider => powershell,
+    require  => File["C:/Windows/TEMP/chocolatey"],
+  }
+
+  exec {'chocolatey-install-dotnet-4.5':
+    command  => "C:/Windows/TEMP/chocolatey/${dotnet_install} /q /norestart /log C:\\Windows\\Logs\\install-dotnet-4.5.log",
+    onlyif   => "if (Get-Item C:\Windows\Microsoft.NET\Framework\v4.0.30319 -ErrorAction Ignore) { exit 1 }",
+    provider => powershell,
+    require  => Exec['chocolatey-download-dotnet-4.5'],
+    notify   => Reboot['after'],
+  }
+
+# Powershell 3.0
+# http://download.microsoft.com/download/E/7/6/E76850B8-DA6E-4FF5-8CCE-A24FC513FD16/Windows6.1-KB2506143-x64.msu
+
+# Powershell 4.0
+# http://download.microsoft.com/download/3/D/6/3D61D262-8549-4769-A660-230B67E15B25/Windows6.1-KB2819745-x64-MultiPkg.msu
+
   $chocolatey_root = 'C:\ProgramData\Chocolatey'
 
-  exec {'install-chocolatey':
+  exec {'chocolatey-install':
     command  => "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))",
     creates  => 'C:/ProgramData/chocolatey/bin/chocolatey.exe',
     provider => powershell,
+    require  => Exec['chocolatey-install-dotnet-4.5'],
   }
 
   exec {'addvar-chocolateyinstall':
@@ -86,7 +119,7 @@ class chocolatey
     $package_defaults = {
       ensure   => installed,
       provider => chocolatey,
-      require  => Exec['install-chocolatey'],
+      require  => Exec['chocolatey-install'],
     }
     create_resources(package, $packages, $package_defaults)
   }
