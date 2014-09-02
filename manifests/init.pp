@@ -116,12 +116,12 @@ class chocolatey
     }
   }
 
-  exec {'addvar-chocolateyinstall':
-    command => 'setx ChocolateyInstall C:\ProgramData\chocolatey',
-    unless  => 'reg query "HKCU\Environment" /v ChocolateyInstall',
-    path    => [ 'C:/windows/sysnative', 'C:/windows/system32' ],
-    require => Exec['install-chocolatey'],
-  }
+  #exec {'addvar-chocolateyinstall':
+  #  command => 'setx ChocolateyInstall C:\ProgramData\chocolatey',
+  #  unless  => 'reg query "HKCU\Environment" /v ChocolateyInstall',
+  #  path    => [ 'C:/windows/sysnative', 'C:/windows/system32' ],
+  #  require => Exec['chocolatey-install'],
+  #}
 
   # Before:
   # setx PATH "%SYSTEMROOT%\system32;%SYSTEMROOT%;%SYSTEMROOT%\system32\Wbem;%SYSTEMROOT%\system32\WindowsPowerShell\v1.0;%ProgramFiles(x86)%\Puppet Labs\Puppet\bin" /M
