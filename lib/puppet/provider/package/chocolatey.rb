@@ -42,7 +42,10 @@ Puppet::Type.type(:package).provide(:chocolatey, :parent => Puppet::Provider::Pa
   def uninstall
     Puppet.notice "Uninstalling #{@resource[:name]}"
     begin
-      chocolatey :uninstall, package_name
+      options = []
+      options << '-source' << @resource[:source] if @resource[:source]
+      options << install_options                 if install_options.any?
+      chocolatey :uninstall, package_name, *options
     rescue Puppet::ExecutionFailure
       Puppet.err "Package #{@resource[:name]} Uninstall failed: #{$!}"
       nil
