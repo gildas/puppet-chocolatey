@@ -77,11 +77,13 @@ class chocolatey
       }
 
 # Powershell 3.0 => http://download.microsoft.com/download/E/7/6/E76850B8-DA6E-4FF5-8CCE-A24FC513FD16/Windows6.1-KB2506143-x64.msu
-# Powershell 4.0 => http://download.microsoft.com/download/3/D/6/3D61D262-8549-4769-A660-230B67E15B25/Windows6.1-KB2819745-x64-MultiPkg.msu
       $posh_source  = 'http://download.microsoft.com/download/E/7/6/E76850B8-DA6E-4FF5-8CCE-A24FC513FD16/Windows6.1-KB2506143-x64.msu'
       $posh_install = 'Windows6.1-KB2506143-x64.msu'
+# Powershell 4.0 => http://download.microsoft.com/download/3/D/6/3D61D262-8549-4769-A660-230B67E15B25/Windows6.1-KB2819745-x64-MultiPkg.msu
+      $posh_source  = 'http://download.microsoft.com/download/3/D/6/3D61D262-8549-4769-A660-230B67E15B25/Windows6.1-KB2819745-x64-MultiPkg.msu'
+      $posh_install = 'Windows6.1-KB2819745-x64-MultiPkg.msu'
 
-      exec {'chocolatey-download-powershell-3.0':
+      exec {'chocolatey-download-powershell-4.0':
         command  => "((new-object net.webclient).DownloadFile('${posh_source}','C:/Windows/TEMP/chocolatey/${posh_install}'))",
         creates  => "C:/Windows/TEMP/chocolatey/${posh_install}",
         provider => powershell,
@@ -93,7 +95,7 @@ class chocolatey
         onlyif   => "if ($PSVersionTable.PSVersion.Major -gt 2) { exit 1 }",
         provider => powershell,
         require  => [
-                      Exec['chocolatey-download-powershell-3.0'],
+                      Exec['chocolatey-download-powershell-4.0'],
                       Exec['chocolatey-install-dotnet-4.5'],
                     ],
         notify   => Reboot['after'],
