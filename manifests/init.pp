@@ -90,7 +90,7 @@ class chocolatey
         require  => File["C:/Windows/TEMP/chocolatey"],
       }
 
-      exec {'chocolatey-install-poweshell-4.0':
+      exec {'chocolatey-install-powershell-4.0':
         command  => "&C:\\Windows\\System32\\wusa.exe /install C:/Windows/TEMP/chocolatey/${posh_install} /quiet /norestart /log C:\\Windows\\Logs\\wusa-posh-4.0.log",
         onlyif   => "if ($PSVersionTable.PSVersion.Major -gt 2) { exit 1 }",
         provider => powershell,
