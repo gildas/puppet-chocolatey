@@ -48,7 +48,7 @@ class chocolatey
 
   $chocolatey_root = 'C:\ProgramData\Chocolatey'
 
-  case $::operatingsystemreleaseneocomplcache
+  case $::operatingsystemrelease
   {
     # On Windows 7 and Windows Server 2008R2, we need to install .Net 4.5 and Powershell 3.0 before Chocolatey
     '6.1.7601', '2008 R2' : # Windows 7, Windows Server 2008R2
