@@ -62,7 +62,7 @@ class chocolatey
       $dotnet_install = 'dotNetFx45_Full_x86_x64.exe'
 
       exec {'chocolatey-download-dotnet-4.5':
-        command  => "((new-object net.webclient).DownloadFile('${dotnet_source}','C:/Windows/TEMP/chocolatey/${dotnet_install}'))",
+        command  => "(new-object net.webclient).DownloadFile('${dotnet_source}','C:/Windows/TEMP/chocolatey/${dotnet_install}')",
         creates  => "C:/Windows/TEMP/chocolatey/${dotnet_install}",
         provider => powershell,
         require  => File["C:/Windows/TEMP/chocolatey"],
@@ -84,7 +84,7 @@ class chocolatey
       $posh_install = 'Windows6.1-KB2819745-x64-MultiPkg.msu'
 
       exec {'chocolatey-download-powershell-4.0':
-        command  => "((new-object net.webclient).DownloadFile('${posh_source}','C:/Windows/TEMP/chocolatey/${posh_install}'))",
+        command  => "(new-object net.webclient).DownloadFile('${posh_source}','C:/Windows/TEMP/chocolatey/${posh_install}')",
         creates  => "C:/Windows/TEMP/chocolatey/${posh_install}",
         provider => powershell,
         require  => File["C:/Windows/TEMP/chocolatey"],
